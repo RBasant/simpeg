@@ -1,8 +1,10 @@
 import numpy as np
-from SimPEG import Utils
+import properties
+
+from .. import Utils
 
 
-class BaseMesh(object):
+class BaseMesh(properties.HasProperties):
     """
     BaseMesh does all the counting you don't want to do.
     BaseMesh should be inherited by meshes with a regular structure.
@@ -12,44 +14,43 @@ class BaseMesh(object):
 
     """
 
-    def __init__(self, n, x0=None):
+    def __init__(self, n, x0=None, **kwargs):
 
-        # Check inputs
+        self.n = n
+
         if x0 is None:
             x0 = np.zeros(len(n))
+        self.x0 = x0
 
-        if not len(n) == len(x0):
-            raise Exception("Dimension mismatch. x0 != len(n)")
+        Utils.setKwargs(self, **kwargs)
 
-        if len(n) > 3:
-            raise Exception("Dimensions higher than 3 are not supported.")
+    n = properties.Array(
+        "number of cells in each direction (dim, )",
+        required=True
+    )
 
-        # Ensure x0 & n are 1D vectors
-        self._n = np.array(n, dtype=int).ravel()
-        self._x0 = np.array(x0, dtype=float).ravel()
-        self._dim = len(self._x0)
+    @properties.validator('n')
+    def validate_n(self, change):
+        value = change['value']
+        assert len(value) <= 3, 'dimensions higher than 3 are not supported'
 
-    @property
-    def x0(self):
-        """
-        Origin of the mesh
+    x0 = properties.Array(
+        "Origin of the mesh",
+        required=True,
+        dtype=float
+    )
 
-        :rtype: numpy.array
-        :return: x0, (dim, )
-        """
-        return self._x0
+    @properties.validator('x0')
+    def x0_validator(self, change):
+        value = change['value']
+        assert(len(value)) == len(self.n), (
+            'x0 must have length of {} dimensions'.format(len(self.n))
+        )
 
-    @property
+    @properties.Integer('number of dimensions')
     def dim(self):
-        """
-        The dimension of the mesh (1, 2, or 3).
+        return len(self.n)
 
-        :rtype: int
-        :return: dim
-        """
-        return self._dim
-
-    @property
     def nC(self):
         """
         Total number of cells in the mesh.
@@ -64,7 +65,7 @@ class BaseMesh(object):
             M = Mesh.TensorMesh([np.ones(n) for n in [2,3]])
             M.plotGrid(centers=True,showIt=True)
         """
-        return int(self._n.prod())
+        return int(self.n.prod())
 
     @property
     def nN(self):
@@ -81,7 +82,7 @@ class BaseMesh(object):
             M = Mesh.TensorMesh([np.ones(n) for n in [2,3]])
             M.plotGrid(nodes=True,showIt=True)
         """
-        return int((self._n+1).prod())
+        return int((self.n+1).prod())
 
     @property
     def nEx(self):
@@ -91,7 +92,7 @@ class BaseMesh(object):
         :rtype: int
         :return: nEx
         """
-        return int((self._n + np.r_[0, 1, 1][:self.dim]).prod())
+        return int((self.n + np.r_[0, 1, 1][:self.dim]).prod())
 
     @property
     def nEy(self):
@@ -103,7 +104,7 @@ class BaseMesh(object):
         """
         if self.dim < 2:
             return None
-        return int((self._n + np.r_[1, 0, 1][:self.dim]).prod())
+        return int((self.n + np.r_[1, 0, 1][:self.dim]).prod())
 
     @property
     def nEz(self):
@@ -115,7 +116,7 @@ class BaseMesh(object):
         """
         if self.dim < 3:
             return None
-        return int((self._n + np.r_[1, 1, 0][:self.dim]).prod())
+        return int((self.n + np.r_[1, 1, 0][:self.dim]).prod())
 
     @property
     def vnE(self):
@@ -156,7 +157,7 @@ class BaseMesh(object):
         :rtype: int
         :return: nFx
         """
-        return int((self._n + np.r_[1, 0, 0][:self.dim]).prod())
+        return int((self.n + np.r_[1, 0, 0][:self.dim]).prod())
 
     @property
     def nFy(self):
@@ -168,7 +169,7 @@ class BaseMesh(object):
         """
         if self.dim < 2:
             return None
-        return int((self._n + np.r_[0, 1, 0][:self.dim]).prod())
+        return int((self.n + np.r_[0, 1, 0][:self.dim]).prod())
 
     @property
     def nFz(self):
@@ -180,7 +181,7 @@ class BaseMesh(object):
         """
         if self.dim < 3:
             return None
-        return int((self._n + np.r_[0, 0, 1][:self.dim]).prod())
+        return int((self.n + np.r_[0, 0, 1][:self.dim]).prod())
 
     @property
     def vnF(self):
@@ -319,7 +320,7 @@ class BaseRectangularMesh(BaseMesh):
         :rtype: int
         :return: nCx
         """
-        return int(self._n[0])
+        return int(self.n[0])
 
     @property
     def nCy(self):
@@ -331,7 +332,7 @@ class BaseRectangularMesh(BaseMesh):
         """
         if self.dim < 2:
             return None
-        return int(self._n[1])
+        return int(self.n[1])
 
     @property
     def nCz(self):
@@ -342,7 +343,7 @@ class BaseRectangularMesh(BaseMesh):
         """
         if self.dim < 3:
             return None
-        return int(self._n[2])
+        return int(self.n[2])
 
     @property
     def vnC(self):
@@ -659,7 +660,7 @@ class BaseRectangularMesh(BaseMesh):
         def switchKernal(xx):
             """Switches over the different options."""
             if xType in ['CC', 'N']:
-                nn = (self._n) if xType == 'CC' else (self._n+1)
+                nn = (self.n) if xType == 'CC' else (self.n+1)
                 assert xx.size == np.prod(nn), "Number of elements must not change."
                 return outKernal(xx, nn)
             elif xType in ['F', 'E']:
