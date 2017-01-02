@@ -1,4 +1,5 @@
-from SimPEG import Problem, Utils, Props, Solver as SimpegSolver
+from ... import Utils
+from ... import Props
 from .SurveyFDEM import Survey as SurveyFDEM
 from .FieldsFDEM import (
     FieldsFDEM, Fields3D_e, Fields3D_b, Fields3D_h, Fields3D_j
@@ -344,7 +345,7 @@ class Problem3D_e(BaseFDEMProblem):
 
         C = self.mesh.edgeCurl
         MfMui = self.MfMui
-        s_m, s_e = self.getSourceTerm(freq)
+        s_m, _ = self.getSourceTerm(freq)
         s_mDeriv, s_eDeriv = src.evalDeriv(self, adjoint=adjoint)
         MfMuiDeriv = self.MfMuiDeriv(s_m)
 
@@ -446,7 +447,6 @@ class Problem3D_b(BaseFDEMProblem):
 
     def getADeriv_mui(self, freq, u, v, adjoint=False):
 
-        MfMui = self.MfMui
         MfMuiDeriv = self.MfMuiDeriv(u)
         MeSigmaI = self.MeSigmaI
         C = self.mesh.edgeCurl
@@ -617,7 +617,6 @@ class Problem3D_j(BaseFDEMProblem):
         """
 
         MeMuI = self.MeMuI
-        MfRho = self.MfRho
         C = self.mesh.edgeCurl
         MfRhoDeriv = self.MfRhoDeriv(u)
 

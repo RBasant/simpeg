@@ -507,7 +507,7 @@ class MagDipole(BaseSrc):
                 return -C.T * (MMui_sDeriv * v)
 
             elif formulation == 'HJ':
-                return Zero()
+                # return Zero()
                 # raise NotImplementedError
                 mu_s = prob.mu - self.mu
                 MMui_s = prob.mesh.getEdgeInnerProduct(mu_s, invMat=True)

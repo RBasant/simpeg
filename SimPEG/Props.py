@@ -198,7 +198,7 @@ class PhysicalProperty(properties.Property):
                     self.reciprocal.name
                 )
         if self.mapping is None and self.reciprocal is None:
-            return '[ ] {}: property not set'.format(
+            return '{} {}: property not set'.format(
                 self.name,
                 self.reciprocal.name
             )

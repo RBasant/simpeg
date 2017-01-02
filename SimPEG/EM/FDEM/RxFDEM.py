@@ -14,10 +14,10 @@ class BaseRx(SimPEG.Survey.BaseRx):
     def __init__(self, locs, orientation=None, component=None):
         assert(
             orientation in ['x', 'y', 'z']
-        ), "Orientation {0!s} not known. Orientation must be in 'x', 'y', 'z'."
-        " Arbitrary orientations have not yet been implemented.".format(
-            orientation
-        )
+        ), (
+            "Orientation {0!s} not known. Orientation must be in 'x', 'y', 'z'."
+            " Arbitrary orientations have not yet been implemented."
+        ).format(orientation)
         assert(
             component in ['real', 'imag']
             ), "'component' must be 'real' or 'imag', not {0!s}".format(

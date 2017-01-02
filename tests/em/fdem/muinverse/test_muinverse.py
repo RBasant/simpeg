@@ -1,7 +1,6 @@
 from SimPEG import Mesh, Maps, Utils, Tests
 from SimPEG.EM import FDEM
 import numpy as np
-from scipy.constants import mu_0
 
 import unittest
 
